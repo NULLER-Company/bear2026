@@ -153,19 +153,19 @@
 </head>
 <body>
     <canvas id="snow"></canvas>
-    <div class="frost-label">27.11.26 уже близко</div>
+    <div class="frost-label">— Таймер до опасной стадии —</div>
 
     <div class="container">
         <div class="image-wrapper">
             <img id="main-image" src="before.jpg" alt="Картинка">
         </div>
         <div id="timer">00:00:00</div>
-        <div id="message">Он появился...</div>
+        <div id="message">ОПАСНАЯ СТАДИЯ!!!</div>
     </div>
 
     <script>
         /* ====== ТАЙМЕР ====== */
-        const targetDate = new Date('2026-11-01T00:00:00').getTime();
+        const targetDate = new Date('2026-11-27T00:00:00').getTime();
         const timerEl = document.getElementById('timer');
         const messageEl = document.getElementById('message');
         const imageEl = document.getElementById('main-image');
