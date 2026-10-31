@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обратный отсчёт</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #0d1a24 0%, #050a10 70%, #000000 100%);
+            color: #d8e6f0;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.85) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        #snow {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            padding: 20px;
+            animation: breath 7s ease-in-out infinite;
+        }
+
+        @keyframes breath {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .image-wrapper {
+            position: relative;
+        }
+
+        .image-wrapper img {
+            max-width: 90vw;
+            max-height: 60vh;
+            border-radius: 6px;
+            object-fit: contain;
+            display: block;
+            filter: grayscale(35%) brightness(0.78) contrast(1.15) hue-rotate(185deg) saturate(0.7);
+            box-shadow:
+                0 0 40px rgba(0, 0, 0, 0.9),
+                0 0 100px rgba(100, 150, 200, 0.08),
+                inset 0 0 60px rgba(0, 0, 0, 0.4);
+            transition: filter 1.2s ease;
+        }
+
+        .image-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 25px rgba(200, 220, 240, 0.12);
+            pointer-events: none;
+        }
+
+        #timer {
+            font-size: clamp(48px, 10vw, 96px);
+            font-weight: 700;
+            color: #b00000;
+            letter-spacing: 8px;
+            font-variant-numeric: tabular-nums;
+            font-family: 'Georgia', serif;
+            text-shadow:
+                0 0 10px rgba(139, 0, 0, 0.9),
+                0 0 25px rgba(139, 0, 0, 0.5),
+                0 0 45px rgba(80, 0, 0, 0.4),
+                2px 2px 4px rgba(0, 0, 0, 0.9);
+            animation: flicker 4s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 92%, 100% { opacity: 1; }
+            93% { opacity: 0.75; }
+            94% { opacity: 1; }
+            95% { opacity: 0.6; }
+            96% { opacity: 1; }
+        }
+
+        #message {
+            display: none;
+            font-size: clamp(28px, 6vw, 64px);
+            font-weight: 700;
+            color: #c9d8e8;
+            text-align: center;
+            font-family: 'Georgia', serif;
+            letter-spacing: 3px;
+            text-shadow:
+                0 0 15px rgba(180, 200, 220, 0.5),
+                0 0 35px rgba(100, 130, 160, 0.4),
+                2px 2px 6px rgba(0, 0, 0, 0.9);
+            animation: appear 2s ease-out forwards;
+        }
+
+        @keyframes appear {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .frost-label {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Georgia', serif;
+            font-size: 13px;
+            letter-spacing: 6px;
+            color: rgba(180, 200, 220, 0.35);
+            text-transform: uppercase;
+            z-index: 3;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snow"></canvas>
+    <div class="frost-label">— Зима близко —</div>
+
+    <div class="container">
+        <div class="image-wrapper">
+            <img id="main-image" src="before.jpg" alt="Картинка">
+        </div>
+        <div id="timer">00:00:00</div>
+        <div id="message">Медведь 2026 появился!</div>
+    </div>
+
+    <script>
+        /* ====== ТАЙМЕР ====== */
+        const targetDate = new Date('2026-11-01T00:00:00').getTime();
+        const timerEl = document.getElementById('timer');
+        const messageEl = document.getElementById('message');
+        const imageEl = document.getElementById('main-image');
+
+        function pad(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function updateTimer() {
+            const now = Date.now();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                timerEl.style.display = 'none';
+                messageEl.style.display = 'block';
+                imageEl.src = 'after.jpg';
+                imageEl.style.filter = 'brightness(0.95) contrast(1.1)';
+                return;
+            }
+
+            const totalSeconds = Math.floor(diff / 1000);
+            const totalHours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            timerEl.textContent =
+                String(totalHours).padStart(2, '0') + ':' +
+                pad(minutes) + ':' +
+                pad(seconds);
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+
+        /* ====== СНЕГОПАД ====== */
+        const canvas = document.getElementById('snow');
+        const ctx = canvas.getContext('2d');
+        let W, H, flakes;
+
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+            createFlakes();
+        }
+
+        function createFlakes() {
+            const count = Math.floor((W * H) / 9000);
+            flakes = [];
+            for (let i = 0; i < count; i++) {
+                flakes.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    r: Math.random() * 2.5 + 0.5,
+                    d: Math.random() * 1 + 0.3,
+                    sway: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function drawSnow() {
+            ctx.clearRect(0, 0, W, H);
+            ctx.fillStyle = 'rgba(220, 230, 245, 0.75)';
+            ctx.beginPath();
+            for (const f of flakes) {
+                ctx.moveTo(f.x, f.y);
+                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+            }
+            ctx.fill();
+            moveFlakes();
+        }
+
+        function moveFlakes() {
+            for (const f of flakes) {
+                f.sway += 0.01;
+                f.y += f.d + 0.5;
+                f.x += Math.sin(f.sway) * 0.6;
+
+                if (f.y > H) {
+                    f.y = -5;
+                    f.x = Math.random() * W;
+                }
+                if (f.x > W) f.x = 0;
+                if (f.x < 0) f.x = W;
+            }
+        }
+
+        function loop() {
+            drawSnow();
+            requestAnimationFrame(loop);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        loop();
+    </script>
+</body>
+</html>
