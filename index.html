@@ -31,16 +31,18 @@
             display: block;
         }
 
-        /* Лёгкое затемнение и виньетка, чтобы текст всегда читался на любом фоне */
+        /* Виньетка и затемнение снизу для идеальной читаемости тёмно-красного цвета */
         .vignette {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.75) 100%);
+            background: 
+                linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.4) 100%),
+                radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.7) 100%);
             z-index: 2;
             pointer-events: none;
         }
 
-        /* Снегопад поверх картинки */
+        /* Снегопад поверх фона */
         #snow {
             position: fixed;
             inset: 0;
@@ -48,7 +50,24 @@
             pointer-events: none;
         }
 
-        /* Центрирующий контейнер */
+        /* Текст сверху */
+        .frost-label {
+            position: fixed;
+            top: clamp(16px, 4vh, 32px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(11px, 2.5vw, 15px);
+            letter-spacing: clamp(4px, 1vw, 8px);
+            color: rgba(220, 235, 255, 0.8);
+            text-transform: uppercase;
+            font-weight: 600;
+            z-index: 4;
+            pointer-events: none;
+            white-space: nowrap;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+        }
+
+        /* Контейнер: выравнивание строго ВНИЗУ экрана */
         .content {
             position: relative;
             z-index: 4;
@@ -56,35 +75,34 @@
             height: 100dvh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-end; /* Опускает таймер вниз */
             align-items: center;
             padding: 20px;
+            /* Отступ снизу с учётом нижней панели смартфонов */
+            padding-bottom: calc(clamp(28px, 7vh, 64px) + env(safe-area-inset-bottom, 0px));
             text-align: center;
         }
 
-        /* Таймер с нормальным современным шрифтом */
+        /* Таймер: тёмно-красный, БЕЗ свечения */
         #timer {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: clamp(8px, 2.5vw, 24px);
+            gap: clamp(6px, 2.5vw, 24px);
             font-variant-numeric: tabular-nums;
-            color: #ff2a2a;
-            text-shadow: 
-                0 0 20px rgba(255, 30, 30, 0.7),
-                0 4px 12px rgba(0, 0, 0, 0.9);
+            color: #8b0000; /* Тёмно-красный */
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.95); /* Только тень для контраста, без неона */
         }
 
-        /* Блок отдельного числа (дни, часы, минуты, секунды) */
         .time-box {
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-width: clamp(54px, 16vw, 110px);
+            min-width: clamp(52px, 16vw, 110px);
         }
 
         .time-val {
-            font-size: clamp(34px, 9vw, 84px);
+            font-size: clamp(34px, 9.5vw, 84px);
             font-weight: 800;
             line-height: 1;
             letter-spacing: -1px;
@@ -96,29 +114,28 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-top: 6px;
-            color: rgba(255, 200, 200, 0.85);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            color: #a33535; /* Приглушённый тёмно-красный */
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
         }
 
         .colon {
-            font-size: clamp(28px, 7vw, 68px);
+            font-size: clamp(26px, 7vw, 68px);
             font-weight: 700;
-            opacity: 0.8;
+            color: #8b0000;
             margin-bottom: clamp(14px, 3vw, 24px);
             user-select: none;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.95);
         }
 
-        /* Финальное сообщение */
+        /* Финальное сообщение внизу */
         #message {
             display: none;
-            font-size: clamp(28px, 7vw, 68px);
+            font-size: clamp(24px, 6.5vw, 56px);
             font-weight: 800;
             color: #e6f2ff;
             letter-spacing: 2px;
             text-transform: uppercase;
-            text-shadow:
-                0 0 25px rgba(100, 180, 255, 0.8),
-                0 4px 16px rgba(0, 0, 0, 0.9);
+            text-shadow: 0 4px 16px rgba(0, 0, 0, 0.95);
             animation: zoomIn 1.2s ease-out forwards;
         }
 
@@ -136,34 +153,35 @@
 </head>
 <body>
 
-    <!-- Полноэкранное изображение -->
-    <img id="bg-image" src="before.jpg" alt="Фон">
+    <!-- Картинка во весь экран из той же папки -->
+    <img id="bg-image" src="before.png" alt="Фон">
 
-    <!-- Виньетка и Снегопад -->
+    <!-- Виньетка с акцентом на низ, надпись сверху и снег -->
     <div class="vignette"></div>
+    <div class="frost-label">— До опасной стадии осталось... —</div>
     <canvas id="snow"></canvas>
 
-    <!-- Контент -->
+    <!-- Блок таймера (прижат к низу) -->
     <div class="content">
         <div id="timer">
             <div class="time-box">
                 <span class="time-val" id="days">0</span>
-                <span class="time-lbl">дней</span>
+                <span class="time-lbl">days</span>
             </div>
             <span class="colon">:</span>
             <div class="time-box">
                 <span class="time-val" id="hours">00</span>
-                <span class="time-lbl">часов</span>
+                <span class="time-lbl">hours</span>
             </div>
             <span class="colon">:</span>
             <div class="time-box">
                 <span class="time-val" id="minutes">00</span>
-                <span class="time-lbl">минут</span>
+                <span class="time-lbl">minutes</span>
             </div>
             <span class="colon">:</span>
             <div class="time-box">
                 <span class="time-val" id="seconds">00</span>
-                <span class="time-lbl">секунд</span>
+                <span class="time-lbl">seconds</span>
             </div>
         </div>
 
@@ -171,8 +189,10 @@
     </div>
 
     <script>
-        /* ====== ЛОГИКА ТАЙМЕРА ====== */
-        const targetDate = new Date('2026-11-27T00:00:00').getTime();
+        /* ====== СТРОГОЕ МОСКОВСКОЕ ВРЕМЯ (MSK, UTC+3) ====== */
+
+        // Целевая дата: 27 ноября 2026, 00:00:00 строго по МСК (+03:00)
+        const targetDate = new Date('2026-11-27T00:00:00+03:00').getTime();
 
         const timerEl = document.getElementById('timer');
         const messageEl = document.getElementById('message');
@@ -183,18 +203,45 @@
         const mEl = document.getElementById('minutes');
         const sEl = document.getElementById('seconds');
 
+        // Разница между точным временем сервера и часами устройства
+        let serverOffset = 0;
+
+        // Синхронизация с сервером времени (защита от сбитого времени на устройстве)
+        async function syncNetworkTime() {
+            try {
+                const res = await fetch('https://worldtimeapi.org/api/timezone/Europe/Moscow', { cache: 'no-store' });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                const actualTimeMs = new Date(data.utc_datetime).getTime();
+                serverOffset = actualTimeMs - Date.now();
+            } catch (e) {
+                try {
+                    const res2 = await fetch('https://timeapi.io/api/v1/time/current/zone?timeZone=Europe/Moscow', { cache: 'no-store' });
+                    if (!res2.ok) throw new Error();
+                    const data2 = await res2.json();
+                    const actualTimeMs2 = new Date(data2.dateTime + '+03:00').getTime();
+                    serverOffset = actualTimeMs2 - Date.now();
+                } catch (err) {
+                    // При оффлайне используются локальные часы
+                }
+            }
+        }
+
+        syncNetworkTime();
+        setInterval(syncNetworkTime, 600000);
+
         function pad(n) {
             return String(n).padStart(2, '0');
         }
 
         function updateCountdown() {
-            const now = Date.now();
+            const now = Date.now() + serverOffset;
             const diff = targetDate - now;
 
             if (diff <= 0) {
                 timerEl.style.display = 'none';
                 messageEl.style.display = 'block';
-                bgImage.src = 'after.jpg';
+                bgImage.src = 'after.png';
                 return;
             }
 
@@ -213,7 +260,7 @@
         updateCountdown();
         setInterval(updateCountdown, 1000);
 
-        /* ====== АНИМАЦИЯ СНЕГА ====== */
+        /* ====== СНЕГОПАД ====== */
         const canvas = document.getElementById('snow');
         const ctx = canvas.getContext('2d');
         let W, H, flakes;
